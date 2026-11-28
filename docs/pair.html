@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sign in on your TV</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070a10;color:#f5f5f7;font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+main{max-width:440px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:28px;letter-spacing:-.03em;margin:8px 0 6px}p{color:#a1a1a6;margin:0 0 20px}
+label{display:block;font-size:13px;color:#a1a1a6;margin:14px 0 6px}
+input{width:100%;padding:14px 16px;border-radius:14px;border:1px solid #2a3344;background:#141b27;color:#fff;font-size:16px}
+button{margin-top:22px;width:100%;padding:15px;border:0;border-radius:980px;background:#e8b84b;color:#070a10;font-size:17px;font-weight:600}
+.code{display:inline-block;padding:4px 12px;border-radius:980px;background:#141b27;letter-spacing:.2em;font-weight:600}
+#msg{margin-top:16px;min-height:22px}.ok{color:#7ee2a8}.bad{color:#ef9f27}
+</style></head><body><main>
+<span class="code" id="code"></span>
+<h1>Sign in on your TV</h1>
+<p>Type the details from your provider. Your TV signs in as soon as you send them.</p>
+<form id="f">
+<label>Name for this playlist</label><input id="name" placeholder="Living room" autocomplete="off">
+<label>Portal URL</label><input id="portal" placeholder="http://" inputmode="url" autocapitalize="none" autocorrect="off" required>
+<label>MAC address</label><input id="mac" placeholder="00:1A:79:00:00:00" autocapitalize="characters" autocorrect="off">
+<label>Username</label><input id="username" autocapitalize="none" autocorrect="off" required>
+<label>Password</label><input id="password" type="password" required>
+<button type="submit">Send to TV</button>
+<div id="msg"></div>
+</form>
+<script>
+var h=new URLSearchParams(location.hash.slice(1)),code=h.get("c")||"",u=h.get("u")||"",k=h.get("k")||"";
+document.getElementById("code").textContent=code||"No code";
+var msg=document.getElementById("msg");
+if(!code||!u||!k){msg.className="bad";msg.textContent="Scan the code on your TV again to open this page.";}
+document.getElementById("f").addEventListener("submit",function(e){
+  e.preventDefault();if(!code||!u||!k)return;
+  function v(id){return document.getElementById(id).value.trim()}
+  msg.className="";msg.textContent="Sending…";
+  fetch(u.replace(/\/$/,"")+"/rest/v1/rpc/pair_put",{method:"POST",
+    headers:{"apikey":k,"Authorization":"Bearer "+k,"Content-Type":"application/json"},
+    body:JSON.stringify({p_code:code,p_payload:{name:v("name"),portal:v("portal"),mac:v("mac"),username:v("username"),password:document.getElementById("password").value}})})
+  .then(function(r){if(!r.ok)throw 0;msg.className="ok";msg.textContent="Sent. Look at your TV.";})
+  .catch(function(){msg.className="bad";msg.textContent="Could not send. Check your connection and try again.";});
+});
+</script></main></body></html>
